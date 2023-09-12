@@ -1,31 +1,28 @@
 const express = require('express');
-const connection = require('../connection');
-const bcrypt = require('bcrypt');
+const {connection} = require('../connection');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer')
 require('dotenv').config();
 var auth = require('../services/authentication');
-var checkRole = require('../services/checkRole')
+var checkRole = require('../services/checkRole');
 
-router.get('/filter', (req, res)=>{
-    
-})
-
-router.get('/filter', checkRole.checkRole, auth.authenticateToken, (req, res)=>{
-    var query = "SELECT * FROM users where role='user'";
-    connection.query(query, (err, results)=>{
-        if(!err){
-            return res.status(200).json(results)
-        }else{
-            return res.status(500).json(err)
+router.get('/getAllUsers', async (req, res)=>{
+    try{
+        var dbconnection = await connection();
+        var query = 'SELECT * FROM usuarios';
+        const results = await dbconnection.execute(query);
+        return res.status(200).json(results.rows);
+    }catch(err){
+        console.error('Error:', err);
+    } finally{
+        if(dbconnection){
+            try{
+                await dbconnection.close();
+                console.log('Connection closed')
+            }catch(err){
+                console.error('Error closing connection: ', err);
+            }
         }
-    })
-});
-
-router.get('/checkToken', (req, res) => {
-   return res.status(200).json( { message: 'true' })
-}); 
-
+    }
+})
   
 module.exports = router;
